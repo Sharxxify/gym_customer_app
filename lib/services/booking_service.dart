@@ -319,6 +319,10 @@ class BookingService {
 
       if ((response.statusCode == 200 || response.statusCode == 201) && result['success'] == true) {
         return result['data']; // { membership_id, payment_link_url }
+      } else if (response.statusCode == 409 && result['error']?['code'] == 'PENDING_MEMBERSHIP_EXISTS') {
+        // Return existing payment data instead of throwing error
+        debugPrint("ℹ️ Pending membership exists. Returning data with payment link.");
+        return result['error']['details'] ?? {};
       } else {
         final error = result['error'];
         if (error != null && error['code'] == 'UNAUTHORIZED') {
@@ -373,6 +377,10 @@ class BookingService {
 
       if ((response.statusCode == 200 || response.statusCode == 201) && result['success'] == true) {
         return result['data']; // { membership_id, payment_link_url }
+      } else if (response.statusCode == 409 && result['error']?['code'] == 'PENDING_MEMBERSHIP_EXISTS') {
+        // Return existing payment data instead of throwing error
+        debugPrint("ℹ️ Pending multi-gym membership exists. Returning data with payment link.");
+        return result['error']['details'] ?? {};
       } else {
         final error = result['error'];
         if (error != null && error['code'] == 'UNAUTHORIZED') {

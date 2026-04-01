@@ -6,7 +6,7 @@ import '../core/widgets/widgets.dart';
 import '../providers/providers.dart';
 import 'login_screen.dart';
 import 'profile_screen.dart';
-import 'home_screen.dart'; // 👈 adjust if your home screen name differs
+import 'main_screen.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -67,8 +67,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       } else {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-              (route) => false,
+          MaterialPageRoute(builder: (_) => const MainScreen()),
+          (route) => false,
         );
       }
     } else if (authProvider.error != null) {

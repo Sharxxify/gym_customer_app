@@ -805,17 +805,18 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> with WidgetsBin
                                   return;
                                 }
 
-                                final booking = response['booking'];
-                                final paymentLinkUrl = booking?['payment_link_url'];
-                                final membershipId = booking?['id'];
-
                                 debugPrint('✅ Response received: $response');
-                                debugPrint('✅ Booking object: $booking');
-                                debugPrint('✅ Payment URL: $paymentLinkUrl');
-                                debugPrint('✅ Membership ID: $membershipId');
+                                
+                                // Extract IDs and URLs (handling both new booking and existing pending booking cases)
+                                final membershipId = response['membership_id'] ?? response['existing_booking_id'];
+                                final paymentLinkUrl = response['payment_link_url'];
+
+                                debugPrint('✅ Extracted Membership ID: $membershipId');
+                                debugPrint('✅ Extracted Payment URL: $paymentLinkUrl');
 
                                 if (paymentLinkUrl != null && membershipId != null) {
-                                  await _handlePaymentFlow(context, membershipId, paymentLinkUrl);
+                                  // Automatically redirect to the payment URL (new or existing)
+                                  await _handlePaymentFlow(context, membershipId.toString(), paymentLinkUrl);
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(

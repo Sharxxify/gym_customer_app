@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'dart:typed_data'; // 👈 Added for Uint8List support
 import '../core/constants/constants.dart';
 import '../core/widgets/widgets.dart';
 import '../providers/providers.dart';
@@ -25,8 +25,8 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  String? _selectedGender;
-  File? _profileImage;
+  String? _selectedGender; // 👈 Restored
+  Uint8List? _imageBytes; // 👈 Store bytes for local preview
   String? _uploadedImageUrl; // Store the uploaded URL from API
   bool _isUploadingImage = false; // Track upload state
   bool _isLoadingProfile = false; // Track profile loading state
@@ -126,8 +126,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (picked != null) {
+      final bytes = await picked.readAsBytes(); // 👈 Read bytes immediately
       setState(() {
-        _profileImage = File(picked.path);
+        _imageBytes = bytes; // 👈 Store for preview
         _isUploadingImage = true;
       });
 
@@ -139,10 +140,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           throw Exception("Authentication required. Please login again.");
         }
 
-        // Upload file and get URL
+        // Upload bytes and get URL
         final uploadedUrl = await _uploadService.uploadFile(
           token: token,
-          file: File(picked.path),
+          fileBytes: bytes, // 👈 Pass bytes
+          fileName: picked.name, // 👈 Pass filename
         );
 
         setState(() {
@@ -162,7 +164,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       } catch (e) {
         setState(() {
           _isUploadingImage = false;
-          _profileImage = null; // Clear image on upload failure
+          _imageBytes = null; // Clear picked bytes on upload failure
         });
 
         if (mounted) {
@@ -179,42 +181,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _handleUpdate() async {
-    // Validate required fields - only for Update Profile, not Skip
-    List<String> emptyFields = [];
-
-    if (_nameController.text.trim().isEmpty) {
-      emptyFields.add('Name');
-    }
-
-    if (_selectedGender == null || _selectedGender!.isEmpty) {
-      emptyFields.add('Gender');
-    }
-
-    if (_emailController.text.trim().isEmpty) {
-      emptyFields.add('Email');
-    }
-
-    // Check if profile image is uploaded (only during initial setup)
-    if (widget.isInitialSetup && _uploadedImageUrl == null && _profileImage == null) {
-      emptyFields.add('Profile Image');
-    }
-
-    // Show validation errors if any fields are empty
-    if (emptyFields.isNotEmpty) {
-      String message = emptyFields.length == 1
-          ? 'Please fill in ${emptyFields[0]}'
-          : 'Please fill in: ${emptyFields.join(', ')}';
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: AppColors.error,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-      return;
-    }
-
     final authProvider = context.read<AuthProvider>();
 
     final success = await authProvider.updateProfile(
@@ -312,19 +278,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             CircleAvatar(
                               radius: 50,
                               backgroundColor: AppColors.surfaceLight,
-                              backgroundImage: _profileImage != null
-                                  ? FileImage(_profileImage!)
-                                  : (_uploadedImageUrl != null && _uploadedImageUrl!.isNotEmpty)
-                                  ? NetworkImage(_uploadedImageUrl!) as ImageProvider
-                                  : null,
-                              child: (_profileImage == null && (_uploadedImageUrl == null || _uploadedImageUrl!.isEmpty))
-                                  ? const Icon(
-                                Icons.person,
-                                size: 50,
-                                color: AppColors.textSecondary,
-                              )
-                                  : null,
-                            ),
+                                backgroundImage: _imageBytes != null
+                                    ? MemoryImage(_imageBytes!) as ImageProvider
+                                    : (_uploadedImageUrl != null && _uploadedImageUrl!.isNotEmpty)
+                                    ? NetworkImage(_uploadedImageUrl!) as ImageProvider
+                                    : null,
+                                child: (_imageBytes == null && (_uploadedImageUrl == null || _uploadedImageUrl!.isEmpty))
+                                    ? const Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: AppColors.textSecondary,
+                                )
+                                    : null,
+                              ),
                             // Loading indicator overlay
                             if (_isUploadingImage)
                               Positioned.fill(

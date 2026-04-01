@@ -409,10 +409,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             text: 'Mark Attendance',
             icon: Icons.qr_code_scanner,
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const QRScannerScreen()),
-              );
+              debugPrint("🔘 Mark Attendance Button Clicked!");
+              try {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const QRScannerScreen()),
+                );
+                debugPrint("✅ Navigator.push called successfully");
+              } catch (e) {
+                debugPrint("❌ Navigator error: $e");
+              }
             },
           ),
         ),

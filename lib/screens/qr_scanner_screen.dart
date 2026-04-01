@@ -21,10 +21,22 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = MobileScannerController(
-      facing: CameraFacing.back,
-      torchEnabled: false,
-    );
+    debugPrint("✅ QR Scanner Screen Initializing...");
+    _initializeScanner();
+  }
+
+  Future<void> _initializeScanner() async {
+    try {
+      _controller = MobileScannerController(
+        facing: CameraFacing.back,
+        torchEnabled: false,
+      );
+      debugPrint("✅ MobileScannerController created successfully");
+      await _controller?.start();
+      debugPrint("✅ MobileScannerController started explicitly");
+    } catch (e) {
+      debugPrint("❌ Error initializing MobileScannerController: $e");
+    }
   }
 
   @override

@@ -38,6 +38,7 @@ dependencies:
   # Camera & QR
   mobile_scanner: ^3.5.5
   permission_handler: ^11.3.0
+  camera_windows: ^0.2.1+9
 
   # UI Components
   flutter_svg: ^2.0.9

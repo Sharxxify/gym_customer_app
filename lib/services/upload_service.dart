@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
@@ -30,14 +29,12 @@ class UploadService {
   /// Returns the final uploaded file URL
   Future<String> uploadFile({
     required String token,
-    required File file,
+    required Uint8List fileBytes,  // 👈 Accept bytes for Web compatibility
+    required String fileName,      // 👈 Accept filename separately
   }) async {
     try {
-      final fileName = path.basename(file.path);
       final mimeType = _getMimeType(fileName);  // 👈 detect MIME type
       debugPrint("✅ Uploading file: $fileName (type: $mimeType)");
-
-      final fileBytes = await file.readAsBytes();
 
       final url = Uri.parse("$baseUrl/upload/image");
 
